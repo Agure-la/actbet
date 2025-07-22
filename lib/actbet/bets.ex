@@ -25,18 +25,44 @@ defp fetch_odd(odds, bet_choice) do
   end
 end
 
- def place_bet(user_id, attrs) do
+defp no_duplicate_games?(selections) do
+  game_ids = Enum.map(selections, & &1["game_id"])
+  length(game_ids) == length(Enum.uniq(game_ids))
+end
+
+defp fetch_total_odds(selections) do
+  selections
+  |> Enum.reduce_while({:ok, 1.0}, fn %{"game_id" => game_id, "choice" => choice}, {:ok, acc} ->
+    case Repo.get(Game, game_id) do
+      nil ->
+        {:halt, {:error, "Game #{game_id} not found"}}
+
+      %Game{bet_odds: nil} ->
+        {:halt, {:error, "No odds configured for game #{game_id}"}}
+
+      %Game{bet_odds: odds} ->
+        case Map.get(odds, choice) do
+          nil -> {:halt, {:error, "No odds for #{choice} in game #{game_id}"}}
+          odd -> {:cont, {:ok, acc * odd}}
+        end
+    end
+  end)
+end
+
+
+def place_bet(user_id, attrs) do
   case Repo.get(User, user_id) do
     nil ->
       {:error, "User not found"}
 
     %User{} ->
-      game_id = attrs["game_id"] || attrs[:game_id]
-      with %Game{bet_odds: odds} = game <- Repo.get(Game, game_id),
-           bet_choice when is_binary(bet_choice) <- attrs["bet_choice"] || attrs[:bet_choice],
+      selections = attrs["selections"] || attrs[:selections]
+
+      with true <- is_list(selections),
+           true <- no_duplicate_games?(selections),
            %Decimal{} = amount <- parse_decimal(attrs["amount"] || attrs[:amount]),
-           {:ok, odd} <- fetch_odd(odds, bet_choice),
-           possible_win <- Decimal.mult(amount, Decimal.from_float(odd)) do
+           {:ok, total_odds} <- fetch_total_odds(selections),
+           possible_win <- Decimal.mult(amount, Decimal.from_float(total_odds)) do
 
         updated_attrs =
           attrs
@@ -47,12 +73,14 @@ end
         |> Bet.changeset(updated_attrs)
         |> Repo.insert()
       else
-        nil -> {:error, "Invalid game selected"}
+        false -> {:error, "Duplicate games in selections are not allowed"}
+        nil -> {:error, "Invalid selections or amount"}
         {:error, msg} -> {:error, msg}
-        _ -> {:error, "Invalid data provided"}
+        _ -> {:error, "Failed to place bet"}
       end
   end
 end
+
 
 
   @doc """
