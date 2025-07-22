@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Phoenix Server (debug)",
+      "type": "mix_task",
+      "request": "launch",
+      "task": "phx.server",
+      "projectDir": "${workspaceRoot}",
+      "requireFiles": [
+        "lib/**/*.{ex,exs}",
+        "config/**/*.{ex,exs}"
+      ]
+    }
+  ]
+}

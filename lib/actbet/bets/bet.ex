@@ -22,5 +22,6 @@ defmodule Actbet.Bets.Bet do
     |> validate_required([:user_id, :status, :amount])
     |> validate_inclusion(:status, ["placed", "cancelled", "won", "lost"])
     |> foreign_key_constraint(:user_id)
+    |> cast_assoc(:selections, required: true)
   end
 end
