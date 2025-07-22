@@ -180,4 +180,16 @@ end
     |> order_by(desc: :inserted_at)
     |> Repo.all()
   end
+
+  def cancel_bet(bet_id) do
+    case Repo.get(Bet, bet_id) do
+      nil ->
+        {:error, "Bet not found"}
+
+      bet ->
+        bet
+        |> Ecto.Changeset.change(status: "cancelled")
+        |> Repo.update()
+    end
+  end
 end

@@ -37,4 +37,27 @@ end
 
     json(conn, %{data: bets})
   end
+
+  def cancel(conn, %{"id" => bet_id}) do
+    case Bets.cancel_bet(bet_id) do
+      {:ok, bet} ->
+        json(conn, %{message: "Bet cancelled successfully", bet: bet})
+
+      {:error, "Bet not found"} ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: "Bet not found"})
+
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: "Failed to cancel bet", details: changeset_errors(changeset)})
+    end
+  end
+
+  defp changeset_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, val}, acc -> String.replace(acc, "%{#{key}}", to_string(val)) end)
+    end)
+  end
 end

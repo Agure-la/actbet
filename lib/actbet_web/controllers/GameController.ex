@@ -27,4 +27,29 @@ defmodule ActbetWeb.GameController do
       {:error, reason} -> conn |> put_status(:bad_request) |> json(%{error: reason})
     end
   end
+
+  def update_result(conn, %{"id" => id, "result" => result}) do
+    case Sports.update_game_result(id, result) do
+      {:ok, game} ->
+        json(conn, %{message: "Game result updated", game: game})
+
+      {:error, "Game not found"} ->
+        conn
+        |> put_status(:not_found)
+        |> json(%{error: "Game not found"})
+
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: "Failed to update result", details: changeset_errors(changeset)})
+    end
+  end
+
+  defp changeset_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Enum.reduce(opts, msg, fn {key, val}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(val))
+      end)
+    end)
+  end
 end
