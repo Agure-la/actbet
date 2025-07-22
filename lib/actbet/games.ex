@@ -55,4 +55,14 @@ end
         |> Repo.update()
     end
   end
+
+  def update_game_result(game_id, result) when result in ["home", "away", "draw"] do
+    case Repo.get(Game, game_id) do
+      nil -> {:error, "Game not found"}
+      game ->
+        game
+        |> Ecto.Changeset.change(result: result, status: "finished")
+        |> Repo.update()
+    end
+  end
 end

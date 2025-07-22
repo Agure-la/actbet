@@ -21,6 +21,11 @@ config :actbet, Actbet.Repo,
 
 config :actbet, ecto_repos: [Actbet.Repo]
 
+config :actbet, Actbet.Scheduler,
+  jobs: [
+    {"*/5 * * * *", {Actbet.Jobs.BetChecker, :check_bets_and_notify, []}}
+  ]
+
 # Configures the endpoint
 config :actbet, ActbetWeb.Endpoint,
   url: [host: "localhost"],

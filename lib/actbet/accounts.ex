@@ -33,7 +33,10 @@ end
           {:error, "Default role not found. Please seed roles properly."}
 
         %Actbet.Accounts.Role{id: role_id} ->
-          updated_attrs = Map.put(attrs, "role_id", role_id)
+          updated_attrs =
+            attrs
+            |> Map.put("role_id", role_id)
+            |> Map.put("status", 1)
 
           %User{}
           |> User.registration_changeset(updated_attrs)
@@ -61,18 +64,24 @@ end
 end
 
   def login_user(msisdn, given_password) do
-    case get_user_by_msisdn(msisdn) do
-      nil ->
-        {:error, "User not registered"}
+  case get_user_by_msisdn(msisdn) do
+    nil ->
+      {:error, "User not registered"}
 
-      user ->
-        if user.password == given_password do
+    user ->
+      cond do
+        user.status != 1 ->
+          {:error, "Unauthorized. Your account is inactive."}
+
+        user.password == given_password ->
           {:ok, user}
-        else
+
+        true ->
           {:error, "Invalid password"}
-        end
-    end
+      end
   end
+end
+
 
  def get_user_by_msisdn(msisdn) do
     Repo.one(from u in User, where: u.msisdn == ^msisdn)

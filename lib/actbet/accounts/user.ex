@@ -12,6 +12,7 @@ schema "users" do
   field :msisdn, :string
   field :password, :string
   field :password_hash, :string
+  field :status, :integer
   belongs_to :role, Actbet.Accounts.Role
  # field :user_id, Ecto.UUID, autogenerate: true
   timestamps()
@@ -20,8 +21,8 @@ end
 @doc false
 def changeset(user, attrs) do
   user
-  |> cast(attrs, [:first_name, :last_name, :email_address, :msisdn, :password, :role_id])
-  |> validate_required([:first_name, :last_name, :email_address, :msisdn,:password, :role_id])
+  |> cast(attrs, [:first_name, :last_name, :email_address, :msisdn, :password, :role_id, :status])
+  |> validate_required([:first_name, :last_name, :email_address, :msisdn,:password, :role_id, :status])
   |> unique_constraint(:email_address)
   |> unique_constraint(:msisdn)
  # |> put_password_hash()
@@ -31,8 +32,8 @@ end
 @doc false
  def registration_changeset(user, attrs) do
   user
-  |> cast(attrs, [:first_name, :last_name, :email_address, :msisdn, :password, :role_id])
-  |> validate_required([:first_name, :last_name, :email_address, :msisdn, :password, :role_id])
+  |> cast(attrs, [:first_name, :last_name, :email_address, :msisdn, :password, :role_id, :status])
+  |> validate_required([:first_name, :last_name, :email_address, :msisdn, :password, :role_id, :status])
   |> unique_constraint(:email_address)
   |> unique_constraint(:msisdn)
   #|> put_user_id()
