@@ -12,6 +12,7 @@ schema "users" do
   field :msisdn, :string
   field :password, :string
   field :password_hash, :string
+  belongs_to :role, Actbet.Accounts.Role
  # field :user_id, Ecto.UUID, autogenerate: true
   timestamps()
 end
