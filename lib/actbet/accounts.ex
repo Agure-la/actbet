@@ -169,4 +169,41 @@ end
   def change_user(%User{} = user, attrs \\ %{}) do
     User.changeset(user, attrs)
   end
+
+  def list_users_with_bets do
+    from(u in User,
+      where: is_nil(u.deleted_at),
+      preload: [:bets]
+    )
+    |> Repo.all()
+  end
+
+  def total_profit_from_losses do
+    from(b in Bet, where: b.status == "lost", select: sum(b.amount))
+    |> Repo.one()
+  end
+
+  def update_user_role(user_id, new_role_name) do
+  role = Repo.get_by!(Actbet.Accounts.Role, name: new_role_name)
+  user = Repo.get!(Actbet.Accounts.User, user_id)
+
+  user
+  |> Ecto.Changeset.change(role_id: role.id)
+  |> Repo.update()
+end
+
+def soft_delete_user(user_id) do
+  Repo.transaction(fn ->
+    user = Repo.get!(User, user_id)
+
+    user =
+      user
+      |> Ecto.Changeset.change(deleted_at: DateTime.utc_now())
+      |> Repo.update!()
+
+    from(b in Bet, where: b.user_id == ^user.id)
+    |> Repo.update_all(set: [status: 0])
+  end)
+end
+
 end
