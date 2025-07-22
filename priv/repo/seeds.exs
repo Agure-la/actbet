@@ -1,11 +1,8 @@
-# Script for populating the database. You can run it as:
-#
-#     mix run priv/repo/seeds.exs
-#
-# Inside the script, you can read and write to any of your
-# repositories directly:
-#
-#     Actbet.Repo.insert!(%Actbet.SomeSchema{})
-#
-# We recommend using the bang functions (`insert!`, `update!`
-# and so on) as they will fail if something goes wrong.
+
+alias Actbet.Accounts
+alias Actbet.Accounts.Role
+
+Enum.each(["frontend", "admin", "superuser"], fn role_name ->
+  Accounts.get_role_by_name(role_name) ||
+    Accounts.create_role(%{name: role_name})
+end)

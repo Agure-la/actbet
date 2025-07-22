@@ -3,7 +3,7 @@ defmodule Actbet.Accounts.User do
   import Ecto.Changeset
 
   @primary_key {:id, :id, autogenerate: true}
-@derive {Jason.Encoder, only: [:id, :email_address, :first_name, :last_name, :msisdn]}
+@derive {Jason.Encoder, only: [:id, :email_address, :first_name, :last_name, :msisdn, :role_id]}
 
 schema "users" do
   field :first_name, :string
@@ -20,8 +20,8 @@ end
 @doc false
 def changeset(user, attrs) do
   user
-  |> cast(attrs, [:first_name, :last_name, :email_address, :msisdn, :password])
-  |> validate_required([:first_name, :last_name, :email_address, :msisdn,:password])
+  |> cast(attrs, [:first_name, :last_name, :email_address, :msisdn, :password, :role_id])
+  |> validate_required([:first_name, :last_name, :email_address, :msisdn,:password, :role_id])
   |> unique_constraint(:email_address)
   |> unique_constraint(:msisdn)
  # |> put_password_hash()
@@ -31,8 +31,8 @@ end
 @doc false
  def registration_changeset(user, attrs) do
   user
-  |> cast(attrs, [:first_name, :last_name, :email_address, :msisdn, :password])
-  |> validate_required([:first_name, :last_name, :email_address, :msisdn, :password])
+  |> cast(attrs, [:first_name, :last_name, :email_address, :msisdn, :password, :role_id])
+  |> validate_required([:first_name, :last_name, :email_address, :msisdn, :password, :role_id])
   |> unique_constraint(:email_address)
   |> unique_constraint(:msisdn)
   #|> put_user_id()

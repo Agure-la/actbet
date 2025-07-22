@@ -21,17 +21,30 @@ defmodule Actbet.Accounts do
     Repo.all(User)
   end
 
-  def register_user(attrs) do
-    case get_user_by_email_or_msisdn(attrs["email_address"], attrs["msisdn"]) do
-      nil ->
-        %User{}
-        |> User.registration_changeset(attrs)
-        |> Repo.insert()
+  def get_role_by_name(name) do
+  Repo.get_by(Actbet.Accounts.Role, name: name)
+end
 
-      _ ->
-        {:error, "User already exists with this email or MSISDN"}
-    end
+  def register_user(attrs) do
+  case get_user_by_email_or_msisdn(attrs["email_address"], attrs["msisdn"]) do
+    nil ->
+      case get_role_by_name("frontend") do
+        nil ->
+          {:error, "Default role not found. Please seed roles properly."}
+
+        %Actbet.Accounts.Role{id: role_id} ->
+          updated_attrs = Map.put(attrs, "role_id", role_id)
+
+          %User{}
+          |> User.registration_changeset(updated_attrs)
+          |> Repo.insert()
+      end
+
+    _ ->
+      {:error, "User already exists with this email or MSISDN"}
   end
+end
+
 
   def verify_and_get_user(token) do
   # Decode and verify token (adjust based on your token logic)
@@ -64,6 +77,13 @@ end
  def get_user_by_msisdn(msisdn) do
     Repo.one(from u in User, where: u.msisdn == ^msisdn)
   end
+
+#def get_role_by_name(name), do: Repo.get_by(Role, name: name)
+def create_role(attrs) do
+  %Actbet.Accounts.Role{}
+  |> Actbet.Accounts.Role.changeset(attrs)
+  |> Repo.insert()
+end
 
 
   defp get_user_by_email_or_msisdn(email, msisdn) do
