@@ -35,7 +35,7 @@ defmodule ActbetWeb.Router do
   post "/bets", BetController, :create
   get "/bets", BetController, :user_bets
   put "/bets/:id/cancel", BetController, :cancel
-  get "/total_profit", AdminUserController, :total_profit
+  get "/total_profit", AuthController, :total_profit
 
 
   #games
@@ -46,9 +46,9 @@ defmodule ActbetWeb.Router do
   patch "/games/:id/finish", GameController, :finish
 
   #users
-  get "/users_with_bets", AdminUserController, :index
-  put "/users/:id/role", AdminUserController, :update_role
-  delete "/users/:id", AdminUserController, :soft_delete
+  get "/users_with_bets", AuthController, :index
+  put "/users/:id/role", AuthController, :update_role
+  put "/users/:id", AuthController, :soft_delete
 end
 
   # Other scopes may use custom stacks.

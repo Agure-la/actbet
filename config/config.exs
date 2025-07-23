@@ -37,6 +37,17 @@ config :actbet, ActbetWeb.Endpoint,
   pubsub_server: Actbet.PubSub,
   live_view: [signing_salt: "jzw+EHSq"]
 
+  config :actbet, Actbet.Mailer,
+  adapter: Swoosh.Adapters.SMTP,
+  relay: "smtp.gmail.com",
+  username: "estemportfolio@gmail.com",
+  password: "honzpkpthoyikqok",
+  ssl: false,
+  tls: :if_available, # or :always
+  auth: :always,
+  port: 587,
+  retries: 1
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails

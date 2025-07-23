@@ -192,8 +192,8 @@ end
     |> Repo.one()
   end
 
-  def update_user_role(user_id, new_role_name) do
-  role = Repo.get_by!(Actbet.Accounts.Role, name: new_role_name)
+  def update_user_role(user_id, role_name) do
+  role = Repo.get_by!(Actbet.Accounts.Role, name: role_name)
   user = Repo.get!(Actbet.Accounts.User, user_id)
 
   user

@@ -2,6 +2,10 @@ defmodule Actbet.Mailer.Notifier do
   import Swoosh.Email
   alias Actbet.Mailer
 
+  defmodule Actbet.Mailer do
+  use Swoosh.Mailer, otp_app: :actbet
+end
+
   def send_winner_email(email, bet) do
     new()
     |> to(email)
