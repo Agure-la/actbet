@@ -17,5 +17,6 @@ defmodule Actbet.Bets.BetSelection do
     selection
     |> cast(attrs, [:game_id, :bet_id, :choice])
     |> validate_required([:game_id, :choice])
+    |> unique_constraint([:bet_id, :game_id], name: :unique_bet_game)
   end
 end
