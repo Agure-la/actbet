@@ -156,14 +156,36 @@ defp extract_game_id(_), do: nil
   end
 
   def cancel_bet(bet_id) do
-    case Repo.get(Bet, bet_id) do
-      nil ->
-        {:error, "Bet not found"}
+  case Repo.get(Bet, bet_id) do
+    nil ->
+      {:error, Ecto.Changeset.change(%Bet{}) |> Ecto.Changeset.add_error(:bet, "not found")}
 
-      bet ->
+    %Bet{status: "placed"} = bet ->
+      selections_with_games =
+        from(bs in BetSelection,
+          where: bs.bet_id == ^bet_id,
+          join: g in Game, on: g.id == bs.game_id,
+          preload: [game: g]
+        )
+        |> Repo.all()
+
+      now = DateTime.utc_now()
+
+      if Enum.any?(selections_with_games, fn %{game: game} ->
+           DateTime.compare(game.start_time, now) != :gt
+         end) do
+        {:error,
+         Ecto.Changeset.change(bet)
+         |> Ecto.Changeset.add_error(:bet, "Cannot cancel. A game has already started.")}
+      else
         bet
         |> Ecto.Changeset.change(status: "cancelled")
         |> Repo.update()
-    end
+      end
+
+    _ ->
+      {:error, Ecto.Changeset.change(%Bet{}) |> Ecto.Changeset.add_error(:bet, "Only placed bets can be cancelled")}
   end
+end
+
 end
