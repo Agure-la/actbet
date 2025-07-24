@@ -58,7 +58,8 @@ defmodule Actbet.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:joken, "~> 2.6"}
+      {:joken, "~> 2.6"},
+      {:quantum, "~> 3.0"},
      # {:bcrypt_elixir, "~> 3.0", runtime: false},
       #{:guardian, "~> 2.0"}
     ]

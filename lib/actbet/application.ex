@@ -17,7 +17,8 @@ defmodule Actbet.Application do
       # Start a worker by calling: Actbet.Worker.start_link(arg)
       # {Actbet.Worker, arg},
       # Start to serve requests, typically the last entry
-      ActbetWeb.Endpoint
+      ActbetWeb.Endpoint,
+      Actbet.Scheduler
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
