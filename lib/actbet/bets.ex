@@ -93,6 +93,15 @@ defp normalize_keys(map) do
   end
 end
 
+defp ensure_games_not_finished(selections) do
+  case Enum.find(selections, fn sel ->
+         game = Repo.get(Game, sel["game_id"] || sel[:game_id])
+         game && game.status == "finished"
+       end) do
+    nil -> :ok
+    _ -> {:error, "Cannot place bet on a game that is already finished"}
+  end
+end
 
 def place_bet(user_id, attrs) do
   case Repo.get(User, user_id) do
@@ -102,6 +111,7 @@ def place_bet(user_id, attrs) do
       with true <- is_list(attrs["selections"] || attrs[:selections]),
            %Decimal{} = amount <- parse_decimal(attrs["amount"] || attrs[:amount]),
            {:ok, enriched_selections, total_odds} <- enrich_and_calculate_odds(attrs["selections"]),
+           :ok <- ensure_games_not_finished(enriched_selections),
            possible_win <- Decimal.mult(amount, Decimal.from_float(total_odds)),
            game_id <- extract_game_id(enriched_selections),
            true <- not is_nil(game_id) do
@@ -125,6 +135,7 @@ def place_bet(user_id, attrs) do
             {:error, cs}
         end
       else
+        {:error, reason} -> {:error, reason}
         _ -> {:error, "Invalid data or missing selections/game info"}
       end
   end

@@ -43,7 +43,7 @@ config :actbet, ActbetWeb.Endpoint,
   username: "estemportfolio@gmail.com",
   password: "honzpkpthoyikqok",
   ssl: false,
-  tls: :if_available, # or :always
+  tls: :always, # or :always
   auth: :always,
   port: 587,
   retries: 1
