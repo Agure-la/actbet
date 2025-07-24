@@ -13,6 +13,16 @@ ActBet is a simple, production-ready betting system MVP built using the Elixir P
 
 ---
 
+## 📌 Project Purpose
+
+This system allows users to place bets on football matches, with flexible odds and bet selections. It supports:
+
+- Regular users placing and tracking bets.
+- Admins managing user activity.
+- Superadmins configuring games, managing admins, and triggering bet result evaluations.
+
+---
+
 ## 📌 Features
 
 ### ✅ User Features (Frontend Users)
@@ -36,6 +46,26 @@ ActBet is a simple, production-ready betting system MVP built using the Elixir P
 - Update game results and mark them as finished.
 - Grant or revoke admin access from other users.
 - Send out emails for bet wins or losses.
+
+---
+
+## 🗄️ Database Highlights
+
+- **Tables**: `users`, `roles`, `permissions`, `roles_permissions`, `games`, `bets`, `bet_selections`
+- **Constraints**:
+  - Users can only bet on a game once per bet
+  - A bet can contain multiple selections
+  - A bet is marked as *won* only if **all** selections match the game's final result
+
+---
+
+## ⏲️ Background Job
+
+A background job runs periodically and performs:
+
+- For each completed game, match user selections against the result
+- Mark bets as `won` or `lost` based on selections
+- Send an **email** to winners
 
 ---
 
@@ -64,6 +94,20 @@ ActBet is a simple, production-ready betting system MVP built using the Elixir P
 | POST   | `/register`      | Register a new user |
 | POST   | `/login`         | Login and get token |
 
+### 📦 Sample Request: Register User
+
+Registers a new user with required credentials.
+
+```json
+{
+  "user": {
+    "first_name": "John",
+    "last_name": "Doe",
+    "email_address": "john@example.com",
+    "msisdn": "254700000124",
+    "password": "secretpass"
+  }
+}
 ---
 
 ### 🔐 Authenticated APIs
@@ -78,6 +122,26 @@ ActBet is a simple, production-ready betting system MVP built using the Elixir P
 | GET    | `/api/bets`            | View own bet history    |
 | PUT    | `/api/bets/:id/cancel` | Cancel an existing bet  |
 
+### 📦 Sample Request: Place Bet
+
+Place a new bet.
+
+```json
+{
+  "bet": {
+    "amount": "1000",
+    "selections": [
+      {
+        "game_id": 6,
+        "choice": "home"
+      },
+      {
+        "game_id": 5,
+        "choice": "draw"
+      }
+    ]
+  }
+}
 #### 💰 Profits
 
 | Method | Endpoint              | Description            |
@@ -94,6 +158,37 @@ ActBet is a simple, production-ready betting system MVP built using the Elixir P
 | PUT    | `/api/games/:id/result`      | Set game result (superuser) |
 | PATCH  | `/api/games/:id/finish`      | Finalize game (superuser) |
 
+### 📦 Sample Request: Create Game
+
+Create a new game.
+
+```json
+{
+  "game": {
+    "home_team": "Liver",
+    "away_team": "postmouth",
+    "start_time": "2025-07-21T12:00:00Z",
+    "status": "active",
+    "bet_odds": {
+      "home": 1.69,
+      "away": 4.2,
+      "draw": 3.00,
+      "gg": 1.40,
+      "ng": 2.6,
+      "ov2.5": 1.56,
+      "un2.5": 2.07,
+      "1x": 1.03,
+      "2x": 3.6
+    }
+  }
+}
+
+update game result.
+
+```json
+{
+  "result": "home"
+}
 #### 👤 Users
 
 | Method | Endpoint                     | Description                          |
