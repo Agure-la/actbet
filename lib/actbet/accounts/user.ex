@@ -13,7 +13,10 @@ schema "users" do
   field :password, :string
   field :password_hash, :string
   field :status, :integer
+  field :deleted_at, :utc_datetime
   belongs_to :role, Actbet.Accounts.Role
+  has_many :bets, Actbet.Bets.Bet, foreign_key: :user_id
+
  # field :user_id, Ecto.UUID, autogenerate: true
   timestamps()
 end
@@ -21,8 +24,8 @@ end
 @doc false
 def changeset(user, attrs) do
   user
-  |> cast(attrs, [:first_name, :last_name, :email_address, :msisdn, :password, :role_id, :status])
-  |> validate_required([:first_name, :last_name, :email_address, :msisdn,:password, :role_id, :status])
+  |> cast(attrs, [:first_name, :last_name, :email_address, :msisdn, :password, :role_id, :status, :deleted_at])
+  |> validate_required([:first_name, :last_name, :email_address, :msisdn,:password, :role_id, :status, :deleted_at])
   |> unique_constraint(:email_address)
   |> unique_constraint(:msisdn)
  # |> put_password_hash()

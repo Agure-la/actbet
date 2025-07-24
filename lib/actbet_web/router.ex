@@ -28,6 +28,29 @@ defmodule ActbetWeb.Router do
 
   end
 
+ # pipeline :admin_only do
+ # plug ActbetWeb.Plugs.AuthorizeRole, ["admin"]
+ # end
+
+ # pipeline :super_admin_only do
+  #plug ActbetWeb.Plugs.AuthorizeRole, ["superuser"]
+  #end
+
+  #scope "/api", ActbetWeb do
+ # pipe_through [:api, :auth, :super_admin_only]
+
+ # post "/games", GameController, :create
+ # put "/games/:id/result", GameController, :update_result
+ # patch "/games/:id/finish", GameController, :finish
+#end
+
+#scope "/api", ActbetWeb do
+ # pipe_through [:api, :auth, :admin_only]
+
+  #put "/users/:id", AuthController, :soft_delete
+  #get "/users_with_bets", AuthController, :index
+#end
+
   scope "/api", ActbetWeb do
   pipe_through [:api, :auth]
 
@@ -39,16 +62,16 @@ defmodule ActbetWeb.Router do
 
 
   #games
-   post "/games", GameController, :create
   get "/games", GameController, :index
   get "/games/:id", GameController, :show
+  post "/games", GameController, :create
   put "/games/:id/result", GameController, :update_result
   patch "/games/:id/finish", GameController, :finish
 
   #users
-  get "/users_with_bets", AuthController, :index
   put "/users/:id/role", AuthController, :update_role
   put "/users/:id", AuthController, :soft_delete
+  get "/users_with_bets", AuthController, :index
 end
 
   # Other scopes may use custom stacks.

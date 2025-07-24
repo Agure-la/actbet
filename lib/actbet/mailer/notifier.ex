@@ -9,7 +9,7 @@ end
   def send_winner_email(email, bet) do
     new()
     |> to(email)
-    |> from("no-reply@actbet.com")
+    |> from("lameckagure@actbet.com")
     |> subject("🎉 Congratulations! You won your bet!")
     |> text_body("Congrats! Your bet (ID: #{bet.id}) has won. Check your balance.")
     |> Mailer.deliver()

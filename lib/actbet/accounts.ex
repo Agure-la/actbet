@@ -7,6 +7,7 @@ defmodule Actbet.Accounts do
   alias Actbet.Repo
 
   alias Actbet.Accounts.User
+  alias Actbet.Bets.Bet
 
   @doc """
   Returns the list of users.
@@ -48,8 +49,11 @@ end
   end
 end
 
+def verify_jwt(token) do
+  Actbet.Token.verify_and_validate(token)
+end
 
-  def verify_and_get_user(token) do
+   def verify_and_get_user(token) do
   # Decode and verify token (adjust based on your token logic)
   case Phoenix.Token.verify(ActbetWeb.Endpoint, "user_auth", token, max_age: 86400) do
     {:ok, user_id} ->
@@ -84,7 +88,7 @@ end
 
 
  def get_user_by_msisdn(msisdn) do
-    Repo.one(from u in User, where: u.msisdn == ^msisdn)
+    Repo.one(from u in User, where: u.msisdn == ^msisdn, preload: [:role])
   end
 
 #def get_role_by_name(name), do: Repo.get_by(Role, name: name)
@@ -205,14 +209,14 @@ def soft_delete_user(user_id) do
   Repo.transaction(fn ->
     user = Repo.get!(User, user_id)
 
-    user =
-      user
-      |> Ecto.Changeset.change(deleted_at: DateTime.utc_now())
-      |> Repo.update!()
-
-    from(b in Bet, where: b.user_id == ^user.id)
-    |> Repo.update_all(set: [status: 0])
+    user
+    |> Ecto.Changeset.change(
+      deleted_at: DateTime.utc_now() |> DateTime.truncate(:second),
+      status: 0
+    )
+    |> Repo.update!()
   end)
 end
+
 
 end

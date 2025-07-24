@@ -1,6 +1,7 @@
 defmodule ActbetWeb.BetController do
   use ActbetWeb, :controller
   alias Actbet.Bets
+  alias Actbet.Repo
 
  def create(conn, %{"bet" => bet_params}) do
   user_id = conn.assigns.current_user.id  # assuming plug assigns current_user

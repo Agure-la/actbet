@@ -15,7 +15,7 @@ defmodule Actbet.Bets.BetSelection do
 
   def changeset(selection, attrs) do
     selection
-    |> cast(attrs, [:game_id, :choice, :bet_id])
-    |> validate_required([:game_id, :choice,:bet_id])
+    |> cast(attrs, [:game_id, :bet_id, :choice])
+    |> validate_required([:game_id, :choice])
   end
 end

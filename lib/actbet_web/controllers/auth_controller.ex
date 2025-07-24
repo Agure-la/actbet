@@ -50,6 +50,7 @@ defmodule ActbetWeb.AuthController do
     json(conn, users)
   end
 
+  # GET /admin/total_profit
   def total_profit(conn, _params) do
     profit = Accounts.total_profit_from_losses() || 0
     json(conn, %{total_profit_from_losses: profit})

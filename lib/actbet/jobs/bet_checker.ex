@@ -7,7 +7,7 @@ defmodule Actbet.Jobs.BetChecker do
 
   def check_bets_and_notify do
     # Only check active bets
-    Repo.all(from b in Bet, where: b.status == "active", preload: [:user, :selections])
+    Repo.all(from b in Bet, where: b.status == "placed", preload: [:user, :selections])
     |> Enum.each(&evaluate_bet/1)
   end
 

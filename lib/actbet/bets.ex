@@ -70,105 +70,68 @@ end
 
 require Logger
 
+defp insert_selections_async(bet_id, selections) do
+  for sel <- selections do
+    sel
+    |> Map.put("bet_id", bet_id)
+    |> normalize_keys()
+    |> BetSelection.changeset(%BetSelection{})
+    |> Repo.insert()
+    |> case do
+      {:ok, _selection} -> :ok
+      {:error, cs} ->
+        Logger.error("Failed to insert selection for bet #{bet_id}: #{inspect(cs.errors)}")
+        :error
+    end
+  end
+end
+
+defp normalize_keys(map) do
+  for {k, v} <- map, into: %{} do
+    key = if is_binary(k), do: String.to_atom(k), else: k
+    {key, v}
+  end
+end
+
+
 def place_bet(user_id, attrs) do
   case Repo.get(User, user_id) do
-    nil ->
-      Logger.error("User with ID #{user_id} not found")
-      {:error, "User not found"}
+    nil -> {:error, "User not found"}
 
     %User{} ->
-      selections = attrs["selections"] || attrs[:selections]
-
-      with true <- is_list(selections),
-           true <- no_duplicate_games?(selections),
+      with true <- is_list(attrs["selections"] || attrs[:selections]),
            %Decimal{} = amount <- parse_decimal(attrs["amount"] || attrs[:amount]),
-           {:ok, enriched_selections, total_odds} <- enrich_and_calculate_odds(selections),
-           possible_win <- Decimal.mult(amount, Decimal.from_float(total_odds)) do
+           {:ok, enriched_selections, total_odds} <- enrich_and_calculate_odds(attrs["selections"]),
+           possible_win <- Decimal.mult(amount, Decimal.from_float(total_odds)),
+           game_id <- extract_game_id(enriched_selections),
+           true <- not is_nil(game_id) do
 
         bet_attrs =
           attrs
           |> Map.put("user_id", user_id)
           |> Map.put("status", "placed")
           |> Map.put("possible_win", possible_win)
+          |> Map.put("game_id", game_id)
 
-        Repo.transaction(fn ->
-          Logger.debug("Attempting to insert bet with attrs: #{inspect(bet_attrs)}")
+        case Repo.insert(Bet.changeset(%Bet{}, bet_attrs)) do
+          {:ok, bet} ->
+            Task.start(fn ->
+              insert_selections_async(bet.id, enriched_selections)
+            end)
 
-          case %Bet{} |> Bet.changeset(bet_attrs) |> Repo.insert() do
-            {:ok, bet} ->
-              Logger.info("Successfully inserted bet with ID: #{bet.id}")
+            {:ok, bet}
 
-              # Add bet_id to each selection
-              selections_with_bet_id =
-  enriched_selections
-  |> Enum.map(fn sel ->
-    updated =
-      sel
-      |> Map.from_struct()  # Converts struct to plain map (safe for Map.put)
-      |> Map.put("bet_id", bet.id)
-
-    Logger.debug("Prepared selection for insert: #{inspect(updated)}")
-    updated
-  end)
-
-              # Insert each selection
-              selections_result =
-                Enum.map(selections_with_bet_id, fn sel_attrs ->
-                  Logger.debug("Inserting selection: #{inspect(sel_attrs)}")
-
-                  case %BetSelection{}
-                       |> BetSelection.changeset(sel_attrs)
-                       |> Repo.insert() do
-                    {:ok, selection} ->
-                      Logger.info("Inserted selection with ID: #{selection.id}")
-                      {:ok, selection}
-
-                    {:error, changeset} = error ->
-                      Logger.error("Failed to insert selection: #{inspect(changeset.errors)}")
-                      error
-                  end
-                end)
-
-              # Rollback if any failed
-              case Enum.find(selections_result, fn
-                     {:error, _} -> true
-                     _ -> false
-                   end) do
-                nil ->
-                  Logger.info("All selections inserted successfully")
-                  {:ok, Repo.preload(bet, :selections)}
-
-                {:error, failed_changeset} ->
-                  Logger.error("Rolling back due to selection error: #{inspect(failed_changeset.errors)}")
-                  Repo.rollback(failed_changeset)
-              end
-
-            {:error, bet_changeset} ->
-              Logger.error("Failed to insert bet: #{inspect(bet_changeset.errors)}")
-              Repo.rollback(bet_changeset)
-          end
-        end)
+          {:error, cs} ->
+            {:error, cs}
+        end
       else
-        false ->
-          Logger.error("Duplicate games found in selections: #{inspect(selections)}")
-          {:error, "Duplicate games in selections are not allowed"}
-
-        nil ->
-          Logger.error("Invalid selections or amount")
-          {:error, "Invalid selections or amount"}
-
-        {:error, msg} ->
-          Logger.error("Error from enrich or validation: #{inspect(msg)}")
-          {:error, msg}
-
-        other ->
-          Logger.error("Unexpected error: #{inspect(other)}")
-          {:error, "Failed to place bet"}
+        _ -> {:error, "Invalid data or missing selections/game info"}
       end
   end
 end
 
-
+defp extract_game_id([%{game_id: game_id} | _]), do: game_id
+defp extract_game_id(_), do: nil
 
   @doc """
   Lists all bets placed by a user.

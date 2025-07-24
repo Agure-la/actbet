@@ -29,21 +29,25 @@ defmodule ActbetWeb.GameController do
   end
 
   def update_result(conn, %{"id" => id, "result" => result}) do
-    case Sports.update_game_result(id, result) do
-      {:ok, game} ->
-        json(conn, %{message: "Game result updated", game: game})
+  case Games.update_game_result(id, result) do
+    {:ok, game} ->
+      conn
+      |> put_status(:ok)
+      |> json(%{
+        id: game.id,
+        status: game.status,
+        result: game.result,
+        start_time: game.start_time
+        # Add other fields you want to include
+      })
 
-      {:error, "Game not found"} ->
-        conn
-        |> put_status(:not_found)
-        |> json(%{error: "Game not found"})
-
-      {:error, changeset} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> json(%{error: "Failed to update result", details: changeset_errors(changeset)})
-    end
+    {:error, reason} ->
+      conn
+      |> put_status(:bad_request)
+      |> json(%{error: reason})
   end
+end
+
 
   defp changeset_errors(changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
