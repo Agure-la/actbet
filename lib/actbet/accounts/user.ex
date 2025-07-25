@@ -16,6 +16,7 @@ schema "users" do
   field :deleted_at, :utc_datetime
   belongs_to :role, Actbet.Accounts.Role
   has_many :bets, Actbet.Bets.Bet, foreign_key: :user_id
+  has_one :wallet, Actbet.Accounts.Wallet
 
  # field :user_id, Ecto.UUID, autogenerate: true
   timestamps()
