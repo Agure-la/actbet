@@ -67,11 +67,17 @@ defmodule ActbetWeb.Router do
   post "/games", GameController, :create
   put "/games/:id/result", GameController, :update_result
   patch "/games/:id/finish", GameController, :finish
+  get "/games/league/:league_id", GameController, :games_by_league
 
   #users
   put "/users/:id/role", AuthController, :update_role
   put "/users/:id", AuthController, :soft_delete
   get "/users_with_bets", AuthController, :index
+
+  #leagues
+  resources "/leagues", LeagueController, except: [:new, :edit]
+  get "/leagues/country/:country", LeagueController, :list_by_country
+
 end
 
   # Other scopes may use custom stacks.

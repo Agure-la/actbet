@@ -2,7 +2,7 @@ defmodule Actbet.Games.Game do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @derive {Jason.Encoder, only: [:id, :home_team, :away_team, :start_time, :status, :sport, :inserted_at, :updated_at, :bet_odds]}
+  @derive {Jason.Encoder, only: [:id, :home_team, :away_team, :start_time, :status, :sport, :inserted_at, :updated_at, :bet_odds, :league_id]}
   schema "games" do
     field :home_team, :string
     field :away_team, :string
@@ -13,7 +13,7 @@ defmodule Actbet.Games.Game do
     field :bet_odds, :map
 
     has_many :bets, Actbet.Bets.Bet
-
+    belongs_to :league, Actbet.Games.League
     timestamps()
   end
 
@@ -38,11 +38,12 @@ end
   @doc false
 def changeset(game, attrs) do
   game
-  |> cast(attrs, [:home_team, :away_team, :start_time, :result, :status, :bet_odds, :sport])
-  |> validate_required([:home_team, :away_team, :start_time, :sport])
+  |> cast(attrs, [:home_team, :away_team, :start_time, :result, :status, :bet_odds, :sport, :league_id])
+  |> validate_required([:home_team, :away_team, :start_time, :sport, :league_id])
   |> validate_inclusion(:sport, @allowed_sports, message: "must be one of: #{Enum.join(@allowed_sports, ", ")}")
   |> validate_inclusion(:result, ["home", "away", "draw", "gg", "ng", "ov2.5", "un2.5", "1x", "2x"], message: "must be one of: home, away, draw, gg, ng, ov2.5, un2.5, 1x, 2x")
   |> validate_inclusion(:status, ["active", "started", "finished", "cancelled"], message: "must be active, started, finished, or cancelled")
+  |> assoc_constraint(:league)
   |> validate_odds_map()
 end
 end

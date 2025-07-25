@@ -58,6 +58,19 @@ end
   end
 end
 
+def games_by_league(conn, %{"league_id" => league_id} = params) do
+  page = Games.list_games_by_league(league_id, params)
+
+  json(conn, %{
+    data: page.entries,
+    pagination: %{
+      page_number: page.page_number,
+      page_size: page.page_size,
+      total_pages: page.total_pages,
+      total_entries: page.total_entries
+    }
+  })
+end
 
   defp changeset_errors(changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
