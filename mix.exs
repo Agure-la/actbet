@@ -60,6 +60,7 @@ defmodule Actbet.MixProject do
       {:bandit, "~> 1.5"},
       {:joken, "~> 2.6"},
       {:quantum, "~> 3.0"},
+      {:scrivener_ecto, "~> 2.0"}
      # {:bcrypt_elixir, "~> 3.0", runtime: false},
       #{:guardian, "~> 2.0"}
     ]

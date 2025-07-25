@@ -11,10 +11,20 @@ defmodule ActbetWeb.GameController do
     end
   end
 
-  def index(conn, _params) do
-    games = Games.list_games()
-    json(conn, %{data: games})
-  end
+  def index(conn, params) do
+  page = Games.list_games(params)
+
+  json(conn, %{
+    data: page.entries,
+    pagination: %{
+      page_number: page.page_number,
+      page_size: page.page_size,
+      total_pages: page.total_pages,
+      total_entries: page.total_entries
+    }
+  })
+end
+
 
   def show(conn, %{"id" => id}) do
     game = Games.get_game!(id)

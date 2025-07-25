@@ -10,21 +10,23 @@ defp parse_start_time(%{"start_time" => start_time}) when is_binary(start_time) 
   end
 end
 
-defp game_exists_today?(team, %NaiveDateTime{} = start_time) do
+defp game_exists_today?(team, %NaiveDateTime{} = start_time, sport) do
   date = NaiveDateTime.to_date(start_time)
 
   from(g in Game,
     where:
       (g.home_team == ^team or g.away_team == ^team) and
-        fragment("date(?)", g.start_time) == ^date
+      fragment("date(?)", g.start_time) == ^date and
+      g.sport == ^sport
   )
   |> Repo.exists?()
 end
 
 def create_game(attrs) do
   with {:ok, naive_datetime} <- parse_start_time(attrs),
-       false <- game_exists_today?(attrs["home_team"], naive_datetime),
-       false <- game_exists_today?(attrs["away_team"], naive_datetime) do
+       sport <- attrs["sport"],
+       false <- game_exists_today?(attrs["home_team"], naive_datetime, sport),
+       false <- game_exists_today?(attrs["away_team"], naive_datetime, sport) do
 
     %Game{}
     |> Game.changeset(attrs)
@@ -36,13 +38,15 @@ def create_game(attrs) do
   end
 end
 
-
-  def list_games do
+  def list_games(params \\ %{}) do
+  query =
     Game
     |> where([g], g.status == "active")
-    |> order_by(desc: :inserted_at)
-    |> Repo.all()
-  end
+    |> order_by(asc: :start_time)
+
+  Repo.paginate(query, params)
+end
+
 
   def get_game!(id), do: Repo.get!(Game, id)
 
@@ -57,7 +61,7 @@ end
   end
 
   def update_game_result(game_id, result) when result in ["home", "away", "draw"] do
-    
+
     case Repo.get(Game, game_id) do
       nil -> {:error, "Game not found"}
       game ->
