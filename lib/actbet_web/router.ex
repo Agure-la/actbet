@@ -78,6 +78,10 @@ defmodule ActbetWeb.Router do
   get "/leagues/country/:country", LeagueController, :list_by_country
   resources "/leagues", LeagueController, except: [:new, :edit]
 
+  #wallets
+  get "/wallet/:user_id", WalletController, :show
+  post "/wallet/topup", WalletController, :top_up
+  post "/wallet/withdraw", WalletController, :withdraw
 end
 
   # Other scopes may use custom stacks.
