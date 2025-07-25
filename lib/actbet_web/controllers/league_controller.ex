@@ -3,10 +3,10 @@ defmodule ActbetWeb.LeagueController do
 
   alias Actbet.Leagues
 
-  def index(conn, params) do
-  page = Leagues.list_leagues(params)
-  render(conn, :index, leagues: page.entries, page: page)
-end
+   def list_by_country(conn, %{"country" => country}) do
+    leagues = Leagues.list_leagues_by_country(country)
+    render(conn, :index, leagues: leagues)
+  end
 
 
 def create(conn, %{"league" => league_params}) do

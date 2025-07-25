@@ -75,8 +75,8 @@ defmodule ActbetWeb.Router do
   get "/users_with_bets", AuthController, :index
 
   #leagues
-  resources "/leagues", LeagueController, except: [:new, :edit]
   get "/leagues/country/:country", LeagueController, :list_by_country
+  resources "/leagues", LeagueController, except: [:new, :edit]
 
 end
 

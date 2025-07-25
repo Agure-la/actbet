@@ -36,8 +36,7 @@ def delete_league(%League{} = league) do
 end
 
 def list_leagues_by_country(country) do
-  League
-  |> where([l], l.country == ^country)
+  from(l in League, where: l.country == ^country)
   |> Repo.all()
 end
 
