@@ -26,7 +26,7 @@ defmodule Actbet.Accounts do
   Repo.get_by(Actbet.Accounts.Role, name: name)
 end
 
-  def register_user(attrs) do
+ def register_user(attrs) do
   case get_user_by_email_or_msisdn(attrs["email_address"], attrs["msisdn"]) do
     nil ->
       case get_role_by_name("frontend") do
@@ -42,6 +42,21 @@ end
           %User{}
           |> User.registration_changeset(updated_attrs)
           |> Repo.insert()
+          |> case do
+            {:ok, user} ->
+              case Actbet.Accounts.Wallets.create_wallet_for_user(user.id) do
+                {:ok, _wallet} ->
+                  {:ok, user}
+
+                {:error, reason} ->
+                  # Optional: You can choose to delete the user if wallet creation fails
+                  # Repo.delete(user)
+                  {:error, "User created, but wallet creation failed: #{inspect(reason)}"}
+              end
+
+            {:error, changeset} ->
+              {:error, changeset}
+          end
       end
 
     _ ->

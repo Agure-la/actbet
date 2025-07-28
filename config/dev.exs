@@ -3,7 +3,7 @@ import Config
 # Configure your database
 config :actbet, Actbet.Repo,
   username: "root",
-  password: "Laasmecacsk0865E28",
+  password: "Lameck28",
   hostname: "localhost",
   database: "actbet_dev",
   stacktrace: true,
