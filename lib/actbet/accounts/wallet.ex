@@ -11,9 +11,10 @@ defmodule Actbet.Accounts.Wallet do
   end
 
   def changeset(wallet, attrs) do
-    wallet
-    |> cast(attrs, [:balance, :user_id])
-    |> validate_required([:user_id])
-    |> foreign_key_constraint(:user_id)
-  end
+  wallet
+  |> cast(attrs, [:balance, :user_id])
+  |> validate_required([:user_id, :balance]) 
+  |> foreign_key_constraint(:user_id)
+end
+
 end
