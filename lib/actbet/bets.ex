@@ -103,18 +103,32 @@ defp ensure_games_not_finished(selections) do
   end
 end
 
+def get_wallet_for_user(user_id) do
+  case Repo.get_by(Actbet.Accounts.Wallet, user_id: user_id) do
+    nil -> {:error, "Wallet not found for user"}
+    wallet -> {:ok, wallet}
+  end
+end
+
 def place_bet(user_id, attrs) do
   case Repo.get(User, user_id) do
-    nil -> {:error, "User not found"}
+    nil ->
+      {:error, "User not found"}
 
-    %User{} ->
+    %User{} = user ->
       with true <- is_list(attrs["selections"] || attrs[:selections]),
            %Decimal{} = amount <- parse_decimal(attrs["amount"] || attrs[:amount]),
+           {:ok, wallet} <- get_wallet_for_user(user_id),
+           true <- Decimal.cmp(wallet.balance, amount) != :lt || {:error, "Insufficient balance. Kindly top up KES #{Decimal.sub(amount, wallet.balance)}"},
            {:ok, enriched_selections, total_odds} <- enrich_and_calculate_odds(attrs["selections"]),
            :ok <- ensure_games_not_finished(enriched_selections),
            possible_win <- Decimal.mult(amount, Decimal.from_float(total_odds)),
            game_id <- extract_game_id(enriched_selections),
            true <- not is_nil(game_id) do
+
+        # Deduct amount from wallet
+        updated_wallet = Ecto.Changeset.change(wallet, balance: Decimal.sub(wallet.balance, amount))
+        Repo.update!(updated_wallet)
 
         bet_attrs =
           attrs
